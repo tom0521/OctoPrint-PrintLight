@@ -19,7 +19,7 @@ class PrintLightPlugin(octoprint.plugin.EventHandlerPlugin,
                 if event == Events.PRINT_STARTED:
                         self._logger.info("Print Light turning on pin %d" % self._settings.get_int(["gpio"]))
                         GPIO.output(self._settings.get_int(["gpio"]), GPIO.HIGH)
-                elif event == Events.PRINT_DONE:
+                elif event in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
                         self._logger.info("Print Light turning off pin %d" % self._settings.get_int(["gpio"]))
                         GPIO.output(self._settings.get_int(["gpio"]), GPIO.LOW)
 
