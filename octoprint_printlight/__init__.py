@@ -26,8 +26,8 @@ class PrintLightPlugin(octoprint.plugin.EventHandlerPlugin,
 
         def on_settings_initialized(self):
                 self._logger.info("print light setting gpio pin %d to out" % self._settings.get_int(["gpio"]))
-                gpio.setmode(gpio.getmode())
-                gpio.setup(self._settings.get_int(["gpio"]), gpio.out)
+                GPIO.setmode(GPIO.BCM)
+                GPIO.setup(self._settings.get_int(["gpio"]), GPIO.OUT)
 
 	def get_settings_defaults(self):
 		return dict(
