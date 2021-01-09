@@ -10,6 +10,7 @@ from octoprint.events import Events
 
 class PrintLightPlugin(octoprint.plugin.EventHandlerPlugin,
                        octoprint.plugin.SettingsPlugin,
+                       octoprint.plugin.ShutdownPlugin,
                        octoprint.plugin.TemplatePlugin):
 
         ##~~ EventHandlerPlugin mixin
@@ -33,6 +34,11 @@ class PrintLightPlugin(octoprint.plugin.EventHandlerPlugin,
 		return dict(
 		        gpio=1
 	        )
+
+        ##~~ ShutdownPlugin mixin
+
+        def on_shutdown(self):
+                GPIO.cleanup()
 
         ##~~ TemplatePlugin mixin
 
