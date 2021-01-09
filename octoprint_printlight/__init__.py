@@ -2,21 +2,45 @@
 from __future__ import absolute_import
 
 import octoprint.plugin
+import octoprint.printer
 
-class PrintLightPlugin(octoprint.plugin.SettingsPlugin,
+import RPi.GPIO as GPIO
+
+from octoprint.events import Events
+
+class PrintLightPlugin(octoprint.plugin.EventHandlerPlugin,
+                       octoprint.plugin.SettingsPlugin,
                        octoprint.plugin.TemplatePlugin):
 
+        ##~~ EventHandlerPlugin mixin
+
+        def on_event(self, event, payload):
+                if event == Events.PRINT_STARTED:
+                        self._logger.info("Print Light turning on pin %d" % self._settings.get_int(["gpio"]))
+                        GPIO.output(self._settings.get_int(["gpio"]), GPIO.HIGH)
+                elif event == Events.PRINT_DONE:
+                        self._logger.info("Print Light turning off pin %d" % self._settings.get_int(["gpio"]))
+                        GPIO.output(self._settings.get_int(["gpio"]), GPIO.LOW)
+
 	##~~ SettingsPlugin mixin
+
+        def on_settings_initialized(self):
+                self._logger.info("print light setting gpio pin %d to out" % self._settings.get_int(["gpio"]))
+                gpio.setmode(gpio.getmode())
+                gpio.setup(self._settings.get_int(["gpio"]), gpio.out)
 
 	def get_settings_defaults(self):
 		return dict(
 		        gpio=1
 	        )
 
-        def get_template_vars(self):
-                return dict(
-                        gpio=self._settings.get_int(["gpio"])
-                )
+        ##~~ TemplatePlugin mixin
+
+        def get_template_configs(self):
+                return [
+                        dict(type="navbar", custom_bindings=False),
+                        dict(type="settings", custom_bindings=False)
+                ]
 
 	##~~ Softwareupdate hook
 
@@ -26,7 +50,7 @@ class PrintLightPlugin(octoprint.plugin.SettingsPlugin,
 		# for details.
 		return dict(
 			printlight=dict(
-				displayName="Printlight Plugin",
+				displayName="Print Light Plugin",
 				displayVersion=self._plugin_version,
 
 				# version check: github repository
@@ -41,14 +65,7 @@ class PrintLightPlugin(octoprint.plugin.SettingsPlugin,
 		)
 
 
-# If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
-# ("OctoPrint-PluginSkeleton"), you may define that here. Same goes for the other metadata derived from setup.py that
-# can be overwritten via __plugin_xyz__ control properties. See the documentation for that.
-__plugin_name__ = "Printlight Plugin"
-
-# Starting with OctoPrint 1.4.0 OctoPrint will also support to run under Python 3 in addition to the deprecated
-# Python 2. New plugins should make sure to run under both versions for now. Uncomment one of the following
-# compatibility flags according to what Python versions your plugin supports!
+__plugin_name__ = "Print Light"
 __plugin_pythoncompat__ = ">=2.7,<3" # only python 2
 #__plugin_pythoncompat__ = ">=3,<4" # only python 3
 #__plugin_pythoncompat__ = ">=2.7,<4" # python 2 and 3
