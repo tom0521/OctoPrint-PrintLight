@@ -1,6 +1,8 @@
 # OctoPrint-PrintLight
 
-**TODO:** Describe what your plugin does.
+This plugin adds functionality for a light to be controlled throught the Raspberry Pi GPIO. A button/status 
+indicator will be added to the navbar and the light will turn on while the printer is printing unless intentionally
+turned off.
 
 ## Setup
 
@@ -9,9 +11,12 @@ or manually using this URL:
 
     https://github.com/tom0521/OctoPrint-PrintLight/archive/master.zip
 
-**TODO:** Describe how to install your plugin, if more needs to be done than just installing it via pip or through
-the plugin manager.
-
 ## Configuration
 
-**TODO:** Describe your plugin's configuration options (if any).
+To set up this plugin, just select the GPIO pin that the light will be controlled by.
+
+## TODO:
+
+- [ ] Invert the signal
+- [ ] Working navbar status indicator
+- [ ] Add GPIO.BOARD functionality
