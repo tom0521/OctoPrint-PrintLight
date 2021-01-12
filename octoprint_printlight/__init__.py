@@ -14,6 +14,9 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
                        octoprint.plugin.ShutdownPlugin,
                        octoprint.plugin.TemplatePlugin):
 
+    def __init__(self):
+        self.pinState = False
+
     ##~~ AssetPlugin
 
     def get_assets(self):
@@ -28,11 +31,15 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
         if event == Events.PRINT_STARTED:
             self._logger.debug("Print Light turning on pin %d" % self._settings.get_int(["gpio"]))
             GPIO.output(self._settings.get_int(["gpio"]), GPIO.HIGH)
-            self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=True))
+            self.pinState = True
+            self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.pinState))
         elif event in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
             self._logger.debug("Print Light turning off pin %d" % self._settings.get_int(["gpio"]))
             GPIO.output(self._settings.get_int(["gpio"]), GPIO.LOW)
-            self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=False))
+            self.pinState = False
+            self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.pinState))
+        elif event == Events.CLIENT_OPENED:
+            self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.pinState))
 
 	##~~ SettingsPlugin mixin
 
@@ -55,7 +62,7 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
 
     def get_template_configs(self):
         return [
-            dict(type="navbar", custom_bindings=False),
+            dict(type="navbar", custom_bindings=True),
             dict(type="settings", custom_bindings=False)
         ]
 
