@@ -1,8 +1,9 @@
 <form class="form-horizontal">
 	<div class="control-group">
-		<label class="control-label">{{ _('GPIO pin') }}</label>
+		
+		<label class="control-label"> GPIO Pin </label>
 		<div class="controls">
-			<input type="number" class="input-block-level" data-bind="value: settings.plugins.printlight.gpio">
+			<input type="number" class="input-mini" min="0" data-bind="value: settings.plugins.printlight.gpio"> <input type="checkbox" data-bind="checked: settings.plugins.printlight.gpioInvert"> Invert
 		</div>
 	</div>
 </form>

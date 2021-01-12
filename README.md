@@ -17,6 +17,6 @@ To set up this plugin, just select the GPIO pin that the light will be controlle
 
 ## TODO:
 
-- [ ] Invert the signal
-- [ ] Working navbar status indicator
+- [X] Invert the signal
+- [X] Working navbar status indicator
 - [ ] Add GPIO.BOARD functionality

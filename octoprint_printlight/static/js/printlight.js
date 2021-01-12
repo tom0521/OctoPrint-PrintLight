@@ -10,8 +10,10 @@ $(function() {
 			self.isLightOn.subscribe(function () {
 				if (self.isLightOn()) {
 					self.indicator.removeClass("off");
+					self.indicator.children("i").removeClass("far").addClass("fas");
 				} else {
 					self.indicator.addClass("off");
+					self.indicator.children("i").removeClass("fas").addClass("far");
 				}
 			});
 		};

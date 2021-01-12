@@ -16,6 +16,9 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
 
     def __init__(self):
         self.pinState = False
+        
+        self.gpioPin = 0
+        self.gpioInvert = False
 
     ##~~ AssetPlugin
 
@@ -29,24 +32,24 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
 
     def on_event(self, event, payload):
         if event == Events.PRINT_STARTED:
-            self._logger.debug("Print Light turning on pin %d" % self._settings.get_int(["gpio"]))
-            GPIO.output(self._settings.get_int(["gpio"]), GPIO.HIGH)
+            self._logger.debug("Pin %d set to %r" % (self.gpioPin, True ^ self.gpioInvert))
+            GPIO.output(self.gpioPin, True ^ self.gpioInvert)
             self.pinState = True
-            self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.pinState))
         elif event in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
-            self._logger.debug("Print Light turning off pin %d" % self._settings.get_int(["gpio"]))
-            GPIO.output(self._settings.get_int(["gpio"]), GPIO.LOW)
+            self._logger.debug("Pin %d set to %r" % (self.gpioPin, False ^ self.gpioInvert))
+            GPIO.output(self.gpioPin, False ^ self.gpioInvert)
             self.pinState = False
-            self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.pinState))
-        elif event == Events.CLIENT_OPENED:
-            self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.pinState))
+
+        self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.pinState))
 
 	##~~ SettingsPlugin mixin
 
     def on_settings_initialized(self):
-        self._logger.debug("print light setting gpio pin %d to out" % self._settings.get_int(["gpio"]))
+        self.gpioPin = self._settings.get_int(["gpio"])
+        self.gpioInvert = self._settings.get_boolean(["gpioInvert"])
+
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self._settings.get_int(["gpio"]), GPIO.OUT)
+        GPIO.setup(self.gpioPin, GPIO.OUT)
 
 	def get_settings_defaults(self):
 		return dict(
