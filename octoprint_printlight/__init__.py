@@ -59,27 +59,27 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
             dict(type="settings", custom_bindings=False)
         ]
 
-	##~~ Softwareupdate hook
+    ##~~ Softwareupdate hook
 
-	def get_update_information(self):
-		# Define the configuration for your plugin to use with the Software Update
-		# Plugin here. See https://docs.octoprint.org/en/master/bundledplugins/softwareupdate.html
-		# for details.
-		return dict(
-			printlight=dict(
-				displayName="Print Light Plugin",
-				displayVersion=self._plugin_version,
+    def get_update_information(self):
+        # Define the configuration for your plugin to use with the Software Update
+        # Plugin here. See https://docs.octoprint.org/en/master/bundledplugins/softwareupdate.html
+        # for details.
+        return dict(
+            printlight=dict(
+                displayName="Print Light Plugin",
+                displayVersion=self._plugin_version,
 
-				# version check: github repository
-				type="github_release",
-				user="tom0521",
-				repo="OctoPrint-PrintLight",
-				current=self._plugin_version,
+                # version check: github repository
+                type="github_release",
+                user="tom0521",
+                repo="OctoPrint-PrintLight",
+                current=self._plugin_version,
 
-				# update method: pip
-				pip="https://github.com/tom0521/OctoPrint-PrintLight/archive/{target_version}.zip"
-			)
-		)
+                # update method: pip
+                pip="https://github.com/tom0521/OctoPrint-PrintLight/archive/{target_version}.zip"
+            )
+        )
 
 
 __plugin_name__ = "Print Light"
