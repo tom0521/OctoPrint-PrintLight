@@ -8,45 +8,56 @@ import RPi.GPIO as GPIO
 
 from octoprint.events import Events
 
-class PrintLightPlugin(octoprint.plugin.EventHandlerPlugin,
+class PrintLightPlugin(octoprint.plugin.AssetPlugin,
+                       octoprint.plugin.EventHandlerPlugin,
                        octoprint.plugin.SettingsPlugin,
                        octoprint.plugin.ShutdownPlugin,
                        octoprint.plugin.TemplatePlugin):
 
-        ##~~ EventHandlerPlugin mixin
+    ##~~ AssetPlugin
 
-        def on_event(self, event, payload):
-                if event == Events.PRINT_STARTED:
-                        self._logger.info("Print Light turning on pin %d" % self._settings.get_int(["gpio"]))
-                        GPIO.output(self._settings.get_int(["gpio"]), GPIO.HIGH)
-                elif event in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
-                        self._logger.info("Print Light turning off pin %d" % self._settings.get_int(["gpio"]))
-                        GPIO.output(self._settings.get_int(["gpio"]), GPIO.LOW)
+    def get_assets(self):
+        return dict(
+            js=["js/printlight.js"],
+            css=["css/printlight.min.css"]
+        )
+
+    ##~~ EventHandlerPlugin mixin
+
+    def on_event(self, event, payload):
+        if event == Events.PRINT_STARTED:
+            self._logger.debug("Print Light turning on pin %d" % self._settings.get_int(["gpio"]))
+            GPIO.output(self._settings.get_int(["gpio"]), GPIO.HIGH)
+            self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=True))
+        elif event in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
+            self._logger.debug("Print Light turning off pin %d" % self._settings.get_int(["gpio"]))
+            GPIO.output(self._settings.get_int(["gpio"]), GPIO.LOW)
+            self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=False))
 
 	##~~ SettingsPlugin mixin
 
-        def on_settings_initialized(self):
-                self._logger.info("print light setting gpio pin %d to out" % self._settings.get_int(["gpio"]))
-                GPIO.setmode(GPIO.BCM)
-                GPIO.setup(self._settings.get_int(["gpio"]), GPIO.OUT)
+    def on_settings_initialized(self):
+        self._logger.debug("print light setting gpio pin %d to out" % self._settings.get_int(["gpio"]))
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(self._settings.get_int(["gpio"]), GPIO.OUT)
 
 	def get_settings_defaults(self):
 		return dict(
-		        gpio=1
-	        )
+		    gpio=1
+	    )
 
-        ##~~ ShutdownPlugin mixin
+    ##~~ ShutdownPlugin mixin
 
-        def on_shutdown(self):
-                GPIO.cleanup()
+    def on_shutdown(self):
+        GPIO.cleanup()
 
-        ##~~ TemplatePlugin mixin
+    ##~~ TemplatePlugin mixin
 
-        def get_template_configs(self):
-                return [
-                        dict(type="navbar", custom_bindings=False),
-                        dict(type="settings", custom_bindings=False)
-                ]
+    def get_template_configs(self):
+        return [
+            dict(type="navbar", custom_bindings=False),
+            dict(type="settings", custom_bindings=False)
+        ]
 
 	##~~ Softwareupdate hook
 
