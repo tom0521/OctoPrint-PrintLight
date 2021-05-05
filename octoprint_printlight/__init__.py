@@ -12,13 +12,35 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
                        octoprint.plugin.EventHandlerPlugin,
                        octoprint.plugin.SettingsPlugin,
                        octoprint.plugin.ShutdownPlugin,
+                       octoprint.plugin.SimpleApiPlugin,
                        octoprint.plugin.TemplatePlugin):
 
     def __init__(self):
-        self.pinState = False
+        self.isOn = False
         
         self.gpioPin = 0
         self.gpioInvert = False
+
+    ##~~ Light Control Functions
+
+    def turn_on(self):
+        self._logger.debug("Turning print light on")
+        self.isOn = True
+        self._state_change()
+
+    def turn_off(self):
+        self._logger.debug("Turning print light off")
+        self.isOn = False
+        self._state_change()
+
+    def toggle(self):
+        self._logger.debug("Toggling light")
+        self.isOn = not self.isOn
+        self._state_change()
+
+    def _state_change(self):
+        self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.isOn))
+        GPIO.output(self.gpioPin, self.isOn ^ self.gpioInvert)
 
     ##~~ AssetPlugin
 
@@ -32,17 +54,13 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
 
     def on_event(self, event, payload):
         if event == Events.PRINT_STARTED:
-            self._logger.debug("Pin %d set to %r" % (self.gpioPin, True ^ self.gpioInvert))
-            GPIO.output(self.gpioPin, True ^ self.gpioInvert)
-            self.pinState = True
+            self._logger.debug("Print started")
+            self.turn_on()
         elif event in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
-            self._logger.debug("Pin %d set to %r" % (self.gpioPin, False ^ self.gpioInvert))
-            GPIO.output(self.gpioPin, False ^ self.gpioInvert)
-            self.pinState = False
+            self._logger.debug("Print ended")
+            self.turn_off()
 
-        self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.pinState))
-
-	##~~ SettingsPlugin mixin
+    ##~~ SettingsPlugin mixin
 
     def on_settings_initialized(self):
         self.gpioPin = self._settings.get_int(["gpio"])
@@ -50,11 +68,12 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
 
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.gpioPin, GPIO.OUT)
+        self.turn_off()
 
-	def get_settings_defaults(self):
-		return dict(
-		    gpio=1
-	    )
+    def get_settings_defaults(self):
+	return dict(
+	    gpio=1
+	)
 
     ##~~ ShutdownPlugin mixin
 
@@ -69,6 +88,30 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
             dict(type="settings", custom_bindings=False)
         ]
 
+    ##~~ SimpleApiPlugin mixin
+
+    def get_api_commands(self):
+        return dict(
+            turnOn=[],
+            turnOff=[],
+            toggle=[],
+            getState=[]
+        )
+
+    def on_api_get(self, request):
+        return self.on_api_command("getState", [])
+
+    def on_api_command(self, command, data):
+        self._logger.debug("Api call")
+        if command == 'turnOn':
+            self.turn_on()
+        elif command == 'turnOff':
+            self.turn_off()
+        elif command == 'toggle':
+            self.toggle()
+        elif command == 'getState':
+            return jsonify(isLightOn=self.isOn)
+        
     ##~~ Softwareupdate hook
 
     def get_update_information(self):
@@ -103,6 +146,6 @@ def __plugin_load__():
 
 	global __plugin_hooks__
 	__plugin_hooks__ = {
-		"octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
-	}
+	    "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
+        }
 

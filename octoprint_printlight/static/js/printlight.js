@@ -28,6 +28,18 @@ $(function() {
 			}
 		};
 
+		self.toggleLight = function () {
+			$.ajax({
+				url: API_BASEURL + "plugin/printlight",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({
+					command: "toggle"
+				}),
+				contentType: "application/json; charset=UTF-8"
+			})
+		};
+
 	}
 
 	OCTOPRINT_VIEWMODELS.push([
