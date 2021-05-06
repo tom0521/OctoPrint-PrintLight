@@ -4,6 +4,8 @@ This plugin adds functionality for a light to be controlled throught the Raspber
 indicator will be added to the navbar and the light will turn on while the printer is printing unless intentionally
 turned off.
 
+This is an adaptation of the PSUControl Plugin
+
 ## Setup
 
 Install via the bundled [Plugin Manager](https://docs.octoprint.org/en/master/bundledplugins/pluginmanager.html)
@@ -19,4 +21,8 @@ To set up this plugin, just select the GPIO pin that the light will be controlle
 
 - [X] Invert the signal
 - [X] Working navbar status indicator
-- [ ] Add GPIO.BOARD functionality
+- [X] API
+- [X] Working button
+- [ ] Use periphery library
+- [ ] Send client light status on opened
+- [ ] Add user permissions
