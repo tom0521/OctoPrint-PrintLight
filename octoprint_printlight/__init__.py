@@ -59,6 +59,8 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
         elif event in [Events.PRINT_DONE, Events.PRINT_FAILED, Events.PRINT_CANCELLED]:
             self._logger.debug("Print ended")
             self.turn_off()
+        elif event == Events.CLIENT_OPENED:
+            self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.isOn))
 
     ##~~ SettingsPlugin mixin
 
