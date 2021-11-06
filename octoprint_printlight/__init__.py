@@ -73,9 +73,9 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
         self.turn_off()
 
     def get_settings_defaults(self):
-	return dict(
-	    gpio=1
-	)
+        return dict(
+            gpio=1
+        )
 
     ##~~ ShutdownPlugin mixin
 
@@ -143,11 +143,11 @@ __plugin_pythoncompat__ = ">=2.7,<3" # only python 2
 #__plugin_pythoncompat__ = ">=2.7,<4" # python 2 and 3
 
 def __plugin_load__():
-	global __plugin_implementation__
-        __plugin_implementation__ = PrintLightPlugin()
+    global __plugin_implementation__
+    __plugin_implementation__ = PrintLightPlugin()
 
-	global __plugin_hooks__
-	__plugin_hooks__ = {
-	    "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
-        }
+    global __plugin_hooks__
+    __plugin_hooks__ = {
+        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
+    }
 
