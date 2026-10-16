@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "OctoPrint-PrintLight"
+version = "0.2.0"
+description = "Turns on a light while the printer is printing"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.7,<4"
+license = { text = "AGPL-3.0-or-later" }
+authors = [
+    { name = "Thomas Sherwood", email = "tsherwood99@gmail.com" },
+]
+dependencies = [
+    "RPi.GPIO",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: OctoPrint",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.entry-points."octoprint.plugin"]
+printlight = "octoprint_printlight"
+
+[project.urls]
+Homepage = "https://github.com/tom0521/OctoPrint-PrintLight"
+Source = "https://github.com/tom0521/OctoPrint-PrintLight"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["octoprint_printlight", "octoprint_printlight.*"]

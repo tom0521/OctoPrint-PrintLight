@@ -4,6 +4,7 @@ from __future__ import absolute_import
 import octoprint.plugin
 import octoprint.printer
 
+from flask import jsonify
 import RPi.GPIO as GPIO
 
 from octoprint.events import Events
@@ -138,7 +139,8 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
 
 
 __plugin_name__ = "Print Light"
-__plugin_pythoncompat__ = ">=2.7,<4" # python 2 and 3
+__plugin_version__ = "0.2.0"
+__plugin_pythoncompat__ = ">=3.7,<4"
 
 def __plugin_load__():
     global __plugin_implementation__
@@ -148,4 +150,3 @@ def __plugin_load__():
     __plugin_hooks__ = {
         "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
     }
-

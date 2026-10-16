@@ -6,12 +6,17 @@ turned off.
 
 This is an adaptation of the PSUControl Plugin
 
+## Compatibility
+
+This release targets OctoPrint 1.11.8 and Python 3.7 through 3.13. It must run
+on hardware supported by the `RPi.GPIO` package.
+
 ## Setup
 
 Install via the bundled [Plugin Manager](https://docs.octoprint.org/en/master/bundledplugins/pluginmanager.html)
 or manually using this URL:
 
-    https://github.com/tom0521/OctoPrint-PrintLight/archive/master.zip
+    https://github.com/tom0521/OctoPrint-PrintLight/archive/refs/heads/main.zip
 
 ## Configuration
 
