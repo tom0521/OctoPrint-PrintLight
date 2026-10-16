@@ -13,6 +13,11 @@ authors = [
     { name = "Thomas Sherwood", email = "tsherwood99@gmail.com" },
 ]
 dependencies = [
+    "pyserial>=3.5",
+]
+
+[project.optional-dependencies]
+gpio = [
     "RPi.GPIO",
 ]
 classifiers = [

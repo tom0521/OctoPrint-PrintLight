@@ -1,9 +1,33 @@
 <form class="form-horizontal">
-	<div class="control-group">
-		
-		<label class="control-label"> GPIO Pin </label>
-		<div class="controls">
-			<input type="number" class="input-mini" min="0" data-bind="value: settings.plugins.printlight.gpio"> <input type="checkbox" data-bind="checked: settings.plugins.printlight.gpioInvert"> Invert
-		</div>
-	</div>
+    <div class="control-group">
+        <label class="control-label">Controller</label>
+        <div class="controls">
+            <select data-bind="value: settings.plugins.printlight.controller">
+                <option value="gpio">Raspberry Pi GPIO</option>
+                <option value="usb_serial">USB serial relay</option>
+            </select>
+        </div>
+    </div>
+    <div class="control-group" data-bind="visible: settings.plugins.printlight.controller() === 'gpio'">
+        <label class="control-label">GPIO Pin</label>
+        <div class="controls">
+            <input type="number" class="input-mini" min="0" data-bind="value: settings.plugins.printlight.gpio">
+            <input type="checkbox" data-bind="checked: settings.plugins.printlight.gpioInvert"> Invert
+        </div>
+    </div>
+    <div data-bind="visible: settings.plugins.printlight.controller() === 'usb_serial'">
+        <div class="control-group">
+            <label class="control-label">Device</label>
+            <div class="controls">
+                <input type="text" class="input-medium" data-bind="value: settings.plugins.printlight.serialPort">
+                <span class="help-inline">For example, /dev/ttyACM0</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Baud rate</label>
+            <div class="controls">
+                <input type="number" class="input-small" min="1" data-bind="value: settings.plugins.printlight.serialBaudrate">
+            </div>
+        </div>
+    </div>
 </form>

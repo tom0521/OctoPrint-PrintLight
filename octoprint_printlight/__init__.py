@@ -5,9 +5,19 @@ import octoprint.plugin
 import octoprint.printer
 
 from flask import jsonify
-import RPi.GPIO as GPIO
+
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    GPIO = None
+
+try:
+    import serial
+except ImportError:
+    serial = None
 
 from octoprint.events import Events
+
 
 class PrintLightPlugin(octoprint.plugin.AssetPlugin,
                        octoprint.plugin.EventHandlerPlugin,
@@ -18,30 +28,45 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
 
     def __init__(self):
         self.isOn = False
-        
+
+        self.controller = None
         self.gpioPin = 0
         self.gpioInvert = False
+        self.serialPort = None
+        self.serialBaudrate = 9600
+        self._serialConnection = None
+        self._gpioInitialized = False
 
     ##~~ Light Control Functions
 
     def turn_on(self):
         self._logger.debug("Turning print light on")
-        self.isOn = True
-        self._state_change()
+        self._state_change(True)
 
     def turn_off(self):
         self._logger.debug("Turning print light off")
-        self.isOn = False
-        self._state_change()
+        self._state_change(False)
 
     def toggle(self):
         self._logger.debug("Toggling light")
-        self.isOn = not self.isOn
-        self._state_change()
+        self._state_change(not self.isOn)
 
-    def _state_change(self):
+    def _state_change(self, state):
+        if self.controller == "gpio":
+            GPIO.output(self.gpioPin, state ^ self.gpioInvert)
+        elif self.controller == "usb_serial":
+            try:
+                self._serialConnection.write(b"ON\n" if state else b"OFF\n")
+                self._serialConnection.flush()
+            except (serial.SerialException, OSError, ValueError) as error:
+                self._logger.error("Could not set USB relay state: %s", error)
+                return
+        else:
+            self._logger.error("Cannot set light state because no controller is available")
+            return
+
+        self.isOn = state
         self._plugin_manager.send_plugin_message(self._identifier, dict(isLightOn=self.isOn))
-        GPIO.output(self.gpioPin, self.isOn ^ self.gpioInvert)
 
     ##~~ AssetPlugin
 
@@ -68,20 +93,83 @@ class PrintLightPlugin(octoprint.plugin.AssetPlugin,
     def on_settings_initialized(self):
         self.gpioPin = self._settings.get_int(["gpio"])
         self.gpioInvert = self._settings.get_boolean(["gpioInvert"])
+        self.serialPort = self._settings.get(["serialPort"])
+        self.serialBaudrate = self._settings.get_int(["serialBaudrate"])
+        self._configure_controller(self._settings.get(["controller"]))
 
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.gpioPin, GPIO.OUT)
+    def on_settings_save(self, data):
+        super(PrintLightPlugin, self).on_settings_save(data)
+        self.gpioPin = self._settings.get_int(["gpio"])
+        self.gpioInvert = self._settings.get_boolean(["gpioInvert"])
+        self.serialPort = self._settings.get(["serialPort"])
+        self.serialBaudrate = self._settings.get_int(["serialBaudrate"])
+        self._configure_controller(self._settings.get(["controller"]))
+
+    def _configure_controller(self, controller):
+        self._shutdown_controller()
+        self.controller = None
+        self.isOn = False
+
+        if controller == "gpio":
+            if GPIO is None:
+                self._logger.error(
+                    "GPIO control is selected, but RPi.GPIO is not installed"
+                )
+                return
+
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(self.gpioPin, GPIO.OUT)
+            self._gpioInitialized = True
+            self.controller = controller
+        elif controller == "usb_serial":
+            if serial is None:
+                self._logger.error(
+                    "USB serial control is selected, but pyserial is not installed"
+                )
+                return
+
+            try:
+                self._serialConnection = serial.Serial(
+                    port=self.serialPort,
+                    baudrate=self.serialBaudrate,
+                    timeout=1,
+                    write_timeout=1
+                )
+            except (serial.SerialException, OSError, ValueError) as error:
+                self._logger.error(
+                    "Could not open USB relay on %s: %s", self.serialPort, error
+                )
+                return
+
+            self.controller = controller
+        else:
+            self._logger.error("Unsupported light controller: %s", controller)
+            return
+
         self.turn_off()
+
+    def _shutdown_controller(self):
+        if self._serialConnection is not None:
+            self._serialConnection.close()
+            self._serialConnection = None
+
+        if self._gpioInitialized:
+            GPIO.cleanup()
+            self._gpioInitialized = False
 
     def get_settings_defaults(self):
         return dict(
-            gpio=1
+            controller="gpio",
+            gpio=1,
+            gpioInvert=False,
+            serialPort="/dev/ttyACM0",
+            serialBaudrate=9600
         )
 
     ##~~ ShutdownPlugin mixin
 
     def on_shutdown(self):
-        GPIO.cleanup()
+        self._shutdown_controller()
 
     ##~~ TemplatePlugin mixin
 
