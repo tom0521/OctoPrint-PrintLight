@@ -1,8 +1,8 @@
 # OctoPrint-PrintLight
 
-Control a printer light through a Raspberry Pi GPIO pin or a USB serial relay from OctoPrint. The plugin adds a
-light-status indicator and toggle to the navbar, turns the light on when a print starts, and turns it off when a
-print finishes, fails, or is cancelled.
+Control a printer light and PSU through independent Raspberry Pi GPIO pins or USB serial relays from OctoPrint. The
+plugin adds light and PSU status toggles to the navbar, turns the light on when a print starts, and turns it off when
+a print finishes, fails, or is cancelled.
 
 This project is adapted from the [PSU Control plugin](https://github.com/kantlivelong/OctoPrint-PSUControl).
 
@@ -24,33 +24,44 @@ https://github.com/tom0521/OctoPrint-PrintLight/archive/refs/heads/main.zip
 
 ## Configuration
 
-Choose a controller in **Settings > Print Light**, configure it, and save. The light is initialized to off whenever
-the plugin starts or its controller configuration changes.
+Choose a controller for both **Light** and **PSU** in **Settings > Print Light**, configure them, and save. Each
+output is initialized to off whenever the plugin starts or its controller configuration changes. Configure separate
+GPIO pins, or use the same USB serial device and baud rate for both outputs.
+
+Enable **Auto-connect printer** in the PSU settings to have OctoPrint connect after the PSU turns on. Set
+**Connection delay** to allow enough time for the printer and its USB serial interface to boot; the default is
+10 seconds. Turning the PSU off, changing settings, or shutting down OctoPrint cancels any pending connection.
 
 ### Raspberry Pi GPIO
 
 1. Select **Raspberry Pi GPIO**.
-2. Wire the light's control circuit to an available GPIO pin. Use an appropriate transistor, relay, or other
+2. Wire each output's control circuit to a separate available GPIO pin. Use an appropriate transistor, relay, or other
    interface circuit; do not connect a mains-powered light directly to a Raspberry Pi GPIO pin.
-3. Enter the GPIO pin number. Pin numbers use Broadcom (BCM) numbering, not the physical header position. The
-   default is BCM GPIO 1.
-4. Enable **Invert** when the control circuit is active-low.
+3. Enter the GPIO pin number for each output. Pin numbers use Broadcom (BCM) numbering, not the physical header
+   position. The defaults are BCM GPIO 1 for Light and BCM GPIO 2 for PSU.
+4. Enable **Invert** for each output when its control circuit is active-low.
 
 ### USB serial relay
 
 1. Select **USB serial relay**.
-2. Connect the relay and identify its serial device, such as `/dev/ttyACM0`. For a stable device name on Linux,
-   configure a udev rule that creates a symlink for the relay.
+2. Connect the relay and identify its serial device, such as `/dev/ttyACM0`. To control both outputs with the
+   included dual-relay ATtiny85 firmware, select **USB serial relay** for both Light and PSU and enter the same
+   device path and baud rate. The plugin opens one shared serial connection.
+   For a stable device name on Linux, configure a udev rule that creates a symlink for the relay.
 3. Enter that device path and the relay's baud rate. The included ATtiny85 firmware uses `9600`.
-4. The relay must accept newline-delimited `ON` and `OFF` ASCII commands. See
-   [`firmware/printlight_relay`](firmware/printlight_relay) for the included ATtiny85 implementation.
+4. The relay must accept newline-delimited `LIGHT ON`, `LIGHT OFF`, `PSU ON`, and `PSU OFF` ASCII commands. See
+   [`firmware/printlight_relay`](firmware/printlight_relay) for the included ATtiny85 implementation and wiring.
 
 ## Usage
 
 - Click the lightbulb in the OctoPrint navbar to toggle the light manually. A filled bulb indicates that the light is
   on.
+- Click the power icon in the OctoPrint navbar to toggle the PSU manually. A gray icon indicates that the PSU is off.
+- When PSU auto-connect is enabled, turning on the PSU schedules an OctoPrint printer connection after the configured
+  delay.
 - PrintLight turns the light on for `PRINT_STARTED` and off for `PRINT_DONE`, `PRINT_FAILED`, and
-  `PRINT_CANCELLED` events. A manual toggle remains in effect until the next relevant print event.
+  `PRINT_CANCELLED` events. PSU state is only changed manually. A manual light toggle remains in effect until the next
+  relevant print event.
 
 ## API
 
@@ -63,7 +74,10 @@ commands:
 | `turnOn` | Turn the light on. |
 | `turnOff` | Turn the light off. |
 | `toggle` | Toggle the current light state. |
-| `getState` | Return `{"isLightOn": true}` or `{"isLightOn": false}`. |
+| `psuTurnOn` | Turn the PSU on. |
+| `psuTurnOff` | Turn the PSU off. |
+| `psuToggle` | Toggle the PSU. |
+| `getState` | Return `{"isLightOn": true, "isPsuOn": false}`. |
 
 For example:
 

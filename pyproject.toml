@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "OctoPrint-PrintLight"
 version = "0.2.0"
-description = "Turns on a light while the printer is printing"
+description = "Controls a printer light and PSU from OctoPrint"
 readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.7,<4"
 license = { text = "AGPL-3.0-or-later" }

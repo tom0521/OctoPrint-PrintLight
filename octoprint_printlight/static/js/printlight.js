@@ -3,8 +3,10 @@ $(function() {
 		var self = this;
 
 		self.isLightOn = ko.observable(false);
-		
+		self.isPsuOn = ko.observable(false);
+
 		self.indicator = $("#printlight_indicator");
+		self.psuIndicator = $("#printlight_psu_indicator");
 
 		self.onStartup = function () {
 			self.isLightOn.subscribe(function () {
@@ -16,6 +18,10 @@ $(function() {
 					self.indicator.children("i").removeClass("fas").addClass("far");
 				}
 			});
+
+			self.isPsuOn.subscribe(function () {
+				self.psuIndicator.toggleClass("off", !self.isPsuOn());
+			});
 		};
 
 		self.onDataUpdaterPluginMessage = function (plugin, data) {
@@ -25,6 +31,9 @@ $(function() {
 
 			if (data.isLightOn !== undefined) {
 				self.isLightOn(data.isLightOn);
+			}
+			if (data.isPsuOn !== undefined) {
+				self.isPsuOn(data.isPsuOn);
 			}
 		};
 
@@ -37,7 +46,19 @@ $(function() {
 					command: "toggle"
 				}),
 				contentType: "application/json; charset=UTF-8"
-			})
+			});
+		};
+
+		self.togglePsu = function () {
+			$.ajax({
+				url: API_BASEURL + "plugin/printlight",
+				type: "POST",
+				dataType: "json",
+				data: JSON.stringify({
+					command: "psuToggle"
+				}),
+				contentType: "application/json; charset=UTF-8"
+			});
 		};
 
 	}

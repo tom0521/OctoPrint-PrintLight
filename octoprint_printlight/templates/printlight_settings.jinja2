@@ -1,4 +1,5 @@
 <form class="form-horizontal">
+    <h4>Light</h4>
     <div class="control-group">
         <label class="control-label">Controller</label>
         <div class="controls">
@@ -28,6 +29,53 @@
             <div class="controls">
                 <input type="number" class="input-small" min="1" data-bind="value: settings.plugins.printlight.serialBaudrate">
             </div>
+        </div>
+    </div>
+    <hr>
+    <h4>PSU</h4>
+    <div class="control-group">
+        <label class="control-label">Controller</label>
+        <div class="controls">
+            <select data-bind="value: settings.plugins.printlight.psuController">
+                <option value="gpio">Raspberry Pi GPIO</option>
+                <option value="usb_serial">USB serial relay</option>
+            </select>
+        </div>
+    </div>
+    <div class="control-group" data-bind="visible: settings.plugins.printlight.psuController() === 'gpio'">
+        <label class="control-label">GPIO Pin</label>
+        <div class="controls">
+            <input type="number" class="input-mini" min="0" data-bind="value: settings.plugins.printlight.psuGpio">
+            <input type="checkbox" data-bind="checked: settings.plugins.printlight.psuGpioInvert"> Invert
+        </div>
+    </div>
+    <div data-bind="visible: settings.plugins.printlight.psuController() === 'usb_serial'">
+        <div class="control-group">
+            <label class="control-label">Device</label>
+            <div class="controls">
+                <input type="text" class="input-medium" data-bind="value: settings.plugins.printlight.psuSerialPort">
+                <span class="help-inline">For example, /dev/ttyACM1</span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label">Baud rate</label>
+            <div class="controls">
+                <input type="number" class="input-small" min="1" data-bind="value: settings.plugins.printlight.psuSerialBaudrate">
+            </div>
+        </div>
+    </div>
+    <div class="control-group">
+        <label class="control-label">Auto-connect printer</label>
+        <div class="controls">
+            <input type="checkbox" data-bind="checked: settings.plugins.printlight.psuAutoConnect">
+            <span class="help-inline">Connect after the PSU turns on</span>
+        </div>
+    </div>
+    <div class="control-group" data-bind="visible: settings.plugins.printlight.psuAutoConnect">
+        <label class="control-label">Connection delay</label>
+        <div class="controls">
+            <input type="number" class="input-small" min="0" step="0.1" data-bind="value: settings.plugins.printlight.psuAutoConnectDelay">
+            <span class="help-inline">seconds</span>
         </div>
     </div>
 </form>

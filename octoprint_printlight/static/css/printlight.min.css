@@ -1,1 +1,1 @@
-#printlight_indicator.off i{color:grey}
+#printlight_indicator.off i,#printlight_psu_indicator.off i{color:grey}
